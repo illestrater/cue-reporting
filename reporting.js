@@ -100,7 +100,7 @@ Vault.read('secret/env').then(vault => {
                                 ISRC: track.track.isrc,
                                 ACTUAL_TOTAL_PERFORMANCES: track.listenCount,
                             });
-                        }, 100);
+                        }, 1000);
                     }
                 });
             });
