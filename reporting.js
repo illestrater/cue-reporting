@@ -92,7 +92,7 @@ Vault.read('secret/env').then(vault => {
                 set.tracks.forEach(async track => {
                     if (track.track.isrc && track.listenCount > 0) {
                         setTimeout(async () => {
-                            const foundISRC = checkISRC(track.track.isrc);
+                            const foundISRC = await checkISRC(track.track.isrc);
                             console.log('FOUND ISRC', foundISRC);
                             tracks.push({
                                 NAME_OF_SERVICE: 'CUE Music',
