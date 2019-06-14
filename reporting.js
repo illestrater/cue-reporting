@@ -84,14 +84,15 @@ Vault.read('secret/env').then(vault => {
         Set.find({ $and: [
             { startTime: { $gte: startDate } },
             { endTime: { $lte: endDate } }
-        ] }, async (err2, sets) => {
+        ] }, (err2, sets) => {
             const fields = ['NAME_OF_SERVICE', 'FEATURED_ARTIST', 'SOUND_RECORDING_TITLE', 'ISRC', 'ACTUAL_TOTAL_PERFORMANCES'];
             const tracks = [];
             let count = 0;
-            await sets.forEach(async set => {
-                await set.tracks.forEach(async track => {
+            let iteration = 0;
+            sets.forEach(set => {
+                set.tracks.forEach(track => {
                     if (track.track.isrc && track.listenCount > 0) {
-                        await setTimeout(async () => {
+                        setTimeout(async () => {
                             const isrc = await checkISRC(track.track.isrc);
                             console.log('FOUND ISRC', isrc);
                             if (isrc[0] && isrc[0].isrc) {
@@ -105,17 +106,21 @@ Vault.read('secret/env').then(vault => {
                             }
                         }, count);
                         count += 500;
+                        iteration += 1;
                     }
                 });
             });
 
-            const json2csvParser = new Json2csvParser({ fields });
-            const csv = json2csvParser.parse(tracks);
+            console.log('total wait: ', iteration * 500);
+            setTimeout(() => {
+                const json2csvParser = new Json2csvParser({ fields });
+                const csv = json2csvParser.parse(tracks);
 
-            fs.writeFile(`./reports/SoundExchangeROU-${ startDate.month() + 1 }-${ startDate.format('YYYY') }.csv`, csv, (err) => {
-                if (err) console.log(err);
-                console.log('REPORT CREATED!');
-            });
+                fs.writeFile(`./reports/SoundExchangeROU-${ startDate.month() + 1 }-${ startDate.format('YYYY') }.csv`, csv, (err) => {
+                    if (err) console.log(err);
+                    console.log('REPORT CREATED!');
+                });
+            }, iteration * 500);
 
             // res.attachment(`SoundExchangeROU${ req.body.month }-${ req.body.year }`);
             // res.type('csv');
