@@ -62,6 +62,7 @@ Vault.read('secret/env').then(vault => {
         ] }, (err2, sets) => {
             const fields = ['NAME_OF_SERVICE', 'FEATURED_ARTIST', 'SOUND_RECORDING_TITLE', 'ISRC', 'ACTUAL_TOTAL_PERFORMANCES'];
             const tracks = [];
+            console.log('got sets', sets.length);
             sets.forEach(set => {
                 set.tracks.forEach(track => {
                     if (track.track.isrc && track.listenCount > 0) {
@@ -79,7 +80,7 @@ Vault.read('secret/env').then(vault => {
             const json2csvParser = new Json2csvParser({ fields });
             const csv = json2csvParser.parse(tracks);
 
-            fs.writeFile(`./reports/SoundExchangeROU${ startDate.month() + 1 }-${ startDate.format('YYYY') }.csv`, csv, (err) => {
+            fs.writeFile(`./reports/SoundExchangeROU-${ startDate.month() + 1 }-${ startDate.format('YYYY') }.csv`, csv, (err) => {
                 if (err) console.log(err);
                 console.log('REPORT CREATED!');
             });
