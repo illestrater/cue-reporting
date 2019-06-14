@@ -66,40 +66,37 @@ Vault.read('secret/env').then(vault => {
             })
         };
 
-        const json = await fetch('https://api.soundexchange.com/repertoire/v1_0/recordings/search', obj)
-        .then((res) => {
-            return res.json();
-        })
-        .then((resJson) => {
-            return resJson;
-        });
-
-        return json;
+        return fetch('https://api.soundexchange.com/repertoire/v1_0/recordings/search', obj)
     }
 
-    async function generateReport() {
+    function generateReport() {
         const startDate = moment().startOf('month');
         const endDate = moment().endOf('month');
 
         Set.find({ $and: [
             { startTime: { $gte: startDate } },
             { endTime: { $lte: endDate } }
-        ] }, async (err2, sets) => {
+        ] }, (err2, sets) => {
             const fields = ['NAME_OF_SERVICE', 'FEATURED_ARTIST', 'SOUND_RECORDING_TITLE', 'ISRC', 'ACTUAL_TOTAL_PERFORMANCES'];
             const tracks = [];
-            sets.forEach(async set => {
+            sets.forEach(set => {
                 let count = 0;
-                set.tracks.forEach(async track => {
+                set.tracks.forEach(track => {
                     if (track.track.isrc && track.listenCount > 0) {
-                        setTimeout(async () => {
-                            const foundISRC = await checkISRC(track.track.isrc);
-                            console.log('FOUND ISRC', foundISRC);
-                            tracks.push({
-                                NAME_OF_SERVICE: 'CUE Music',
-                                FEATURED_ARTIST: track.track.artist,
-                                SOUND_RECORDING_TITLE: track.track.title,
-                                ISRC: track.track.isrc,
-                                ACTUAL_TOTAL_PERFORMANCES: track.listenCount,
+                        setTimeout(() => {
+                            const foundISRC = checkISRC(track.track.isrc);
+                            foundISRC.then((res) => {
+                                console.log('FOUND ISRC', foundISRC);
+                                const isrc = res.json();
+                                if (isrc[0] && isrc[0].isrc) {
+                                    tracks.push({
+                                        NAME_OF_SERVICE: 'CUE Music',
+                                        FEATURED_ARTIST: track.track.artist,
+                                        SOUND_RECORDING_TITLE: track.track.title,
+                                        ISRC: track.track.isrc,
+                                        ACTUAL_TOTAL_PERFORMANCES: track.listenCount,
+                                    });
+                                }
                             });
                         }, count);
                         count += 1000;
