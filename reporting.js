@@ -104,7 +104,7 @@ Vault.read('secret/env').then(vault => {
                                 });
                             }
                         }, count);
-                        count += 1000;
+                        count += 100;
                     }
                 });
             });
