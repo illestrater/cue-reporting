@@ -87,19 +87,20 @@ Vault.read('secret/env').then(vault => {
         ] }, async (err2, sets) => {
             const fields = ['NAME_OF_SERVICE', 'FEATURED_ARTIST', 'SOUND_RECORDING_TITLE', 'ISRC', 'ACTUAL_TOTAL_PERFORMANCES'];
             const tracks = [];
-            console.log('got sets', sets.length);
             sets.forEach(async set => {
                 set.tracks.forEach(async track => {
                     if (track.track.isrc && track.listenCount > 0) {
-                        const foundISRC = await checkISRC(track.track.isrc);
-                        console.log('FOUND ISRC', foundISRC);
-                        tracks.push({
-                            NAME_OF_SERVICE: 'CUE Music',
-                            FEATURED_ARTIST: track.track.artist,
-                            SOUND_RECORDING_TITLE: track.track.title,
-                            ISRC: track.track.isrc,
-                            ACTUAL_TOTAL_PERFORMANCES: track.listenCount,
-                        });
+                        await setTimeout(async () => {
+                            const foundISRC = await checkISRC(track.track.isrc);
+                            console.log('FOUND ISRC', foundISRC);
+                            tracks.push({
+                                NAME_OF_SERVICE: 'CUE Music',
+                                FEATURED_ARTIST: track.track.artist,
+                                SOUND_RECORDING_TITLE: track.track.title,
+                                ISRC: track.track.isrc,
+                                ACTUAL_TOTAL_PERFORMANCES: track.listenCount,
+                            });
+                        }, 100);
                     }
                 });
             });
