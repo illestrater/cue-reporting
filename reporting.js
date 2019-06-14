@@ -26,6 +26,7 @@ const models = require('./models');
 Vault.read('secret/env').then(vault => {
     const secrets = vault.data;
     const SERVICE_KEY = secrets.service_key;
+    const SOUNDEXCHANGE_KEY = fs.readFileSync(ENV.SOUNDEXCHANGE, 'utf8').trim();
 
     let Set;
     let initialized = false;
@@ -52,20 +53,44 @@ Vault.read('secret/env').then(vault => {
         format: winston.format.simple()
     }));
 
-    function generateReport() {
+    function checkISRC(isrc) {
+        const obj = {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'x-api-key': SOUNDEXCHANGE_KEY
+            },
+            body: JSON.stringify({
+                searchFields: { isrc }
+            })
+        };
+
+        return fetch('https://api.soundexchange.com/repertoire/v1_0/recordings/search', obj)
+        .then((res) => {
+            return res.json();
+        })
+        .then((resJson) => {
+            return resJson;
+        });
+    }
+
+    async function generateReport() {
         const startDate = moment().startOf('month');
         const endDate = moment().endOf('month');
 
         Set.find({ $and: [
             { startTime: { $gte: startDate } },
             { endTime: { $lte: endDate } }
-        ] }, (err2, sets) => {
+        ] }, async (err2, sets) => {
             const fields = ['NAME_OF_SERVICE', 'FEATURED_ARTIST', 'SOUND_RECORDING_TITLE', 'ISRC', 'ACTUAL_TOTAL_PERFORMANCES'];
             const tracks = [];
             console.log('got sets', sets.length);
-            sets.forEach(set => {
-                set.tracks.forEach(track => {
+            sets.forEach(async set => {
+                set.tracks.forEach(async track => {
                     if (track.track.isrc && track.listenCount > 0) {
+                        const foundISRC = await checkISRC(track.track.isrc);
+                        console.log('FOUND ISRC', foundISRC);
                         tracks.push({
                             NAME_OF_SERVICE: 'CUE Music',
                             FEATURED_ARTIST: track.track.artist,
