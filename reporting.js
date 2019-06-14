@@ -53,7 +53,7 @@ Vault.read('secret/env').then(vault => {
         format: winston.format.simple()
     }));
 
-    function checkISRC(isrc) {
+    async function checkISRC(isrc) {
         const obj = {
             method: 'POST',
             headers: {
@@ -66,13 +66,15 @@ Vault.read('secret/env').then(vault => {
             })
         };
 
-        return fetch('https://api.soundexchange.com/repertoire/v1_0/recordings/search', obj)
+        const json = await fetch('https://api.soundexchange.com/repertoire/v1_0/recordings/search', obj)
         .then((res) => {
             return res.json();
         })
         .then((resJson) => {
             return resJson;
         });
+
+        return json;
     }
 
     async function generateReport() {
