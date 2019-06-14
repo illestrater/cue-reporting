@@ -66,7 +66,15 @@ Vault.read('secret/env').then(vault => {
             })
         };
 
-        return fetch('https://api.soundexchange.com/repertoire/v1_0/recordings/search', obj)
+        const json = await fetch('https://api.soundexchange.com/repertoire/v1_0/recordings/search', obj)
+        .then((res) => {
+            return res.json();
+        })
+        .then((resJson) => {
+            return resJson;
+        });
+
+        return json;
     }
 
     function generateReport() {
@@ -84,20 +92,17 @@ Vault.read('secret/env').then(vault => {
                 set.tracks.forEach(track => {
                     if (track.track.isrc && track.listenCount > 0) {
                         setTimeout(() => {
-                            const foundISRC = checkISRC(track.track.isrc);
-                            foundISRC.then((res) => {
-                                const isrc = res.json();
-                                console.log('FOUND ISRC', isrc);
-                                if (isrc[0] && isrc[0].isrc) {
-                                    tracks.push({
-                                        NAME_OF_SERVICE: 'CUE Music',
-                                        FEATURED_ARTIST: track.track.artist,
-                                        SOUND_RECORDING_TITLE: track.track.title,
-                                        ISRC: track.track.isrc,
-                                        ACTUAL_TOTAL_PERFORMANCES: track.listenCount,
-                                    });
-                                }
-                            });
+                            const isrc = checkISRC(track.track.isrc);
+                            console.log('FOUND ISRC', isrc);
+                            if (isrc[0] && isrc[0].isrc) {
+                                tracks.push({
+                                    NAME_OF_SERVICE: 'CUE Music',
+                                    FEATURED_ARTIST: track.track.artist,
+                                    SOUND_RECORDING_TITLE: track.track.title,
+                                    ISRC: track.track.isrc,
+                                    ACTUAL_TOTAL_PERFORMANCES: track.listenCount,
+                                });
+                            }
                         }, count);
                         count += 1000;
                     }
