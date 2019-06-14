@@ -5,7 +5,7 @@ const convert = require('mongoose_schema-json');
 
 const { Schema } = mongoose;
 
-const models = ['Set', 'User', 'Room', 'Dj', 'Subscriber', 'Follower', 'Device'];
+const models = ['Set', 'Track'];
 
 function fixMappings(type) {
   switch (type) {

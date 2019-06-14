@@ -27,7 +27,7 @@ Vault.read('secret/env').then(vault => {
     const secrets = vault.data;
     const SERVICE_KEY = secrets.service_key;
 
-    let  Set;
+    let Set;
     let initialized = false;
     const initialize = setInterval(() => {
         models.initialize().then(() => {
