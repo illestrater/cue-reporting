@@ -79,7 +79,7 @@ Vault.read('secret/env').then(vault => {
             const json2csvParser = new Json2csvParser({ fields });
             const csv = json2csvParser.parse(tracks);
 
-            fs.writeFile(`./reports/SoundExchangeROU${ startDate.month() + 1 }-${ startDate.format('YYYY') }`, csv, (err) => {
+            fs.writeFile(`./reports/SoundExchangeROU${ startDate.month() + 1 }-${ startDate.format('YYYY') }.csv`, csv, (err) => {
                 if (err) console.log(err);
                 console.log('REPORT CREATED!');
             });
@@ -95,10 +95,10 @@ Vault.read('secret/env').then(vault => {
     const interval = 15 * 60 * 1000;
     const timeUntilInterval = 15 - Number(moment(Math.ceil(Date.parse(new Date()) % interval)).format('mm'));
     setTimeout(() => {
-        console.log(`generating report in ${ timeUntilInterval }s`);
+        console.log(`generating report in ${ timeUntilInterval } minutes`);
+        if (initialized) generateReport();
         setInterval(() => {
             console.log('generating report...');
-            if (initialized) generateReport();
         }, 60000 * 15);
     }, timeUntilInterval * 100);
 
