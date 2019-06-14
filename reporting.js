@@ -78,8 +78,9 @@ Vault.read('secret/env').then(vault => {
     }
 
     function generateReport() {
-        const startDate = moment().startOf('month');
-        const endDate = moment().endOf('month');
+        console.log('GENERATING REPORT FOR MONTH: ', moment().subtract(3, 'months').month());
+        const startDate = moment().subtract(3, 'months').startOf('month');
+        const endDate = moment().subtract(3, 'months').endOf('month');
 
         Set.find({ $and: [
             { startTime: { $gte: startDate } },
