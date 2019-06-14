@@ -94,8 +94,8 @@ Vault.read('secret/env').then(vault => {
                     if (track.track.isrc && track.listenCount > 0) {
                         setTimeout(async () => {
                             const isrc = await checkISRC(track.track.isrc);
-                            console.log('FOUND ISRC', isrc);
                             if (isrc[0] && isrc[0].isrc) {
+                                console.log('FOUND ISRC', isrc);
                                 tracks.push({
                                     NAME_OF_SERVICE: 'CUE Music',
                                     FEATURED_ARTIST: track.track.artist,
@@ -120,7 +120,7 @@ Vault.read('secret/env').then(vault => {
                     if (err) console.log(err);
                     console.log('REPORT CREATED!');
                 });
-            }, iteration * 500);
+            }, (iteration + 5) * 500);
 
             // res.attachment(`SoundExchangeROU${ req.body.month }-${ req.body.year }`);
             // res.type('csv');
