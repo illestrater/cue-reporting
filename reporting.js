@@ -88,6 +88,9 @@ Vault.read('secret/env').then(vault => {
             // res.attachment(`SoundExchangeROU${ req.body.month }-${ req.body.year }`);
             // res.type('csv');
             // return res.send(csv);
+        }).select('tracks')
+        .populate({
+            path:   'tracks.track',
         });
     }
 
@@ -101,7 +104,7 @@ Vault.read('secret/env').then(vault => {
         setInterval(() => {
             console.log('generating report...');
         }, 60000 * 15);
-    }, timeUntilInterval * 100);
+    }, 5000); // timeUntilInterval * 100);
 
     // function verify(token, res, callback) {
     //     try {
