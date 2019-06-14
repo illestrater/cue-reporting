@@ -79,14 +79,14 @@ Vault.read('secret/env').then(vault => {
         ] }, (err2, sets) => {
             const fields = ['NAME_OF_SERVICE', 'FEATURED_ARTIST', 'SOUND_RECORDING_TITLE', 'ISRC', 'ACTUAL_TOTAL_PERFORMANCES'];
             const tracks = [];
+            let count = 0;
             sets.forEach(set => {
-                let count = 0;
                 set.tracks.forEach(track => {
                     if (track.track.isrc && track.listenCount > 0) {
                         setTimeout(() => {
                             const foundISRC = checkISRC(track.track.isrc);
                             foundISRC.then((res) => {
-                                console.log('FOUND ISRC', foundISRC);
+                                console.log('FOUND ISRC', res.json());
                                 const isrc = res.json();
                                 if (isrc[0] && isrc[0].isrc) {
                                     tracks.push({
