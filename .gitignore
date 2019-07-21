@@ -8,3 +8,4 @@ todo.md
 *.tar.gz*
 .env
 reports
+yarn.lock

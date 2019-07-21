@@ -26,7 +26,7 @@ const models = require('./models');
 Vault.read('secret/env').then(vault => {
     const secrets = vault.data;
     const SERVICE_KEY = secrets.service_key;
-    const SOUNDEXCHANGE_KEY = fs.readFileSync(ENV.SOUNDEXCHANGE, 'utf8').trim();
+    const SOUNDEXCHANGE_KEY = secrets.soundexchange_key;
 
     let Set;
     let initialized = false;
@@ -78,9 +78,9 @@ Vault.read('secret/env').then(vault => {
     }
 
     function generateReport() {
-        console.log('GENERATING REPORT FOR MONTH: ', moment().subtract(3, 'months').month());
-        const startDate = moment().subtract(3, 'months').startOf('month');
-        const endDate = moment().subtract(3, 'months').endOf('month');
+        console.log('GENERATING REPORT FOR MONTH: ', moment().subtract(2, 'months').month());
+        const startDate = moment().subtract(2, 'months').startOf('month');
+        const endDate = moment().subtract(2, 'months').endOf('month');
 
         Set.find({ $and: [
             { startTime: { $gte: startDate } },
@@ -90,6 +90,7 @@ Vault.read('secret/env').then(vault => {
             const tracks = [];
             let count = 0;
             let iteration = 0;
+            let errorCount = 0;
             sets.forEach(set => {
                 set.tracks.forEach(track => {
                     if (track.track.isrc && track.listenCount > 0) {
@@ -100,11 +101,15 @@ Vault.read('secret/env').then(vault => {
                                 console.log('STORING TRACK');
                                 tracks.push({
                                     NAME_OF_SERVICE: 'CUE Music',
-                                    FEATURED_ARTIST: track.track.artist,
-                                    SOUND_RECORDING_TITLE: track.track.title,
-                                    ISRC: track.track.isrc,
+                                    FEATURED_ARTIST: isrc.recordings[0].recordingArtistName.replace(' ♦', ', '),
+                                    SOUND_RECORDING_TITLE: isrc.recordings[0].recordingTitle,
+                                    ISRC: isrc.recordings[0].isrc,
                                     ACTUAL_TOTAL_PERFORMANCES: track.listenCount,
                                 });
+                            }
+
+                            if (isrc.message === 'Limit Exceeded' || isrc.message === 'Too Many Requests') {
+                                errorCount += 1;
                             }
                         }, count);
                         count += 500;
@@ -120,7 +125,7 @@ Vault.read('secret/env').then(vault => {
 
                 fs.writeFile(`./reports/SoundExchangeROU-${ startDate.month() + 1 }-${ startDate.format('YYYY') }.csv`, csv, (err) => {
                     if (err) console.log(err);
-                    console.log('REPORT CREATED!');
+                    console.log(`REPORT CREATED WITH ${ errorCount } ERRORS`);
                 });
             }, (iteration + 5) * 500);
 
@@ -133,6 +138,43 @@ Vault.read('secret/env').then(vault => {
         });
     }
 
+    function generateRoyaltyReport() {
+        const startDate = moment().subtract(1, 'months').startOf('month');
+        const endDate = moment().subtract(1, 'months').endOf('month');
+
+        Set.find({
+            $and: [
+                { startTime: { $gte: startDate } },
+                { endTime: { $lte: endDate } }
+            ]
+        }, (err2, sets) => {
+            const fields = ['NAME_OF_SERVICE', 'FEATURED_ARTIST', 'SOUND_RECORDING_TITLE', 'ISRC', 'ACTUAL_TOTAL_PERFORMANCES'];
+            const tracks = [];
+            sets.forEach(set => {
+                set.tracks.forEach(track => {
+                    if (track && track.track && track.listenCount > 0 && track.track.isrc && track.track.soundexchangeArtist && track.track.soundexchangeTitle) {
+                        tracks.push({
+                            NAME_OF_SERVICE: 'CUE Music',
+                            FEATURED_ARTIST: track.track.soundexchangeArtist,
+                            SOUND_RECORDING_TITLE: track.track.soundexchangeTitle,
+                            ISRC: track.track.isrc,
+                            ACTUAL_TOTAL_PERFORMANCES: track.listenCount,
+                        });
+                    }
+                });
+            });
+
+            const json2csvParser = new Json2csvParser({ fields });
+            const csv = json2csvParser.parse(tracks);
+
+            fs.writeFile(`./reports/SoundExchangeROU-${ startDate.month() + 1 }-${ startDate.format('YYYY') }.csv`, csv, (err) => {
+                if (err) console.log(err);
+            });
+        }).select('tracks')
+        .populate({
+            path:   'tracks.track',
+        });
+    };
 
     // Notify room subscribers every morning of upcoming sets, check every 15 minutes
     const interval = 15 * 60 * 1000;
